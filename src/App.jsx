@@ -7,7 +7,7 @@ function App() {
   const [clima,setClima] = useState([]);
   const [items,setItems] = useState([]);
 
-  const [cuadro,setCuadro] = useState([]);
+  // const [cuadro,setCuadro] = useState([]);
 
   const transition = useTransition(items,{
     from:{x: -100, y:800, opacity:0, width:10, height:10},
@@ -19,23 +19,42 @@ function App() {
   });
 
   // Si no se pone width y height los cuadros no aparecen, aunque el tamaño sea 0, igualmente debe de estar
-  const transition2 = useTransition(cuadro, {
-    from:{x: -200, y:400, opacity:0, width:10, height:10, color:'#000'},
-    enter: cuadro => async(next) => {
-      await next({y: cuadro.y, opacity:1, delay: cuadro.delay});
-      await next({x:0, width:100, height:100, color:'#fff'});
-    },
-    leave:{x:100, y:800, opacity:0}
-  });
+  // const transition2 = useTransition(cuadro, {
+  //   from:{x: -1000, y:0, opacity:0, width:10, height:10, color:'#000'},
+  //   enter: cuadro => async(next) => {
+  //     await next({y: cuadro.y, opacity:1, delay: cuadro.delay});
+  //     await next({x:0, width:100, height:100, color:'#fff'});
+  //   },
+  //   leave:{x:1000, y:0, opacity:0}
+  // });
 
+  const apikey = '56e1337974ab22108e31121b83bc55f2';
 
+//   useEffect(() => {axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=12.1346&lon=-86.2469&appid=${apikey}`).then(resp => {
+//     console.log('Dentro de useEffect: ',resp.data)
+//     setClima([resp.data.coord])
+// })},[])
 
-  useEffect(() => {axios.get('https://api.openweathermap.org/data/2.5/weather?lat=44.34&lon=10.99&appid=56e1337974ab22108e31121b83bc55f2').then(resp => {
-    console.log('Dentro de useEffect: ',resp.data.coord)
-    setClima([resp.data.coord])
-})},[])
+const location = () => {
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition((position) => {
+      console.log("dentro de if")
+      let nPositionLatitude = position.coords.latitude;
+      let nPositionLongitude = position.coords.longitude;
+      axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${nPositionLatitude}&lon=${nPositionLongitude}&appid=${apikey}`).then(resp => {
+        console.log("resp: ",resp.data.weather[0].description)
+        setClima(resp.data);
+      })
+    }, (error) => {
+      alert(error.message)
+    })
+  }else {
+    alert("Not supported")
+  }
+}
 
-
+useEffect(() => {
+})
 // const [springs, api] = useSpring(() => ({
 //   from: { x: 0 }
 // }))
@@ -58,7 +77,7 @@ function App() {
   const cod = () => {
     return clima.map((obj) => (
       <animated.div key={obj} >
-        <p>lat: {obj.lat}</p>
+        <p>lat: {obj}</p>
       </animated.div>
     ))
   }
@@ -78,6 +97,18 @@ function App() {
       {transition((style,item) => item ? <animated.div style={style} className='item'/> : '')}
     </div>
 
+
+    <button onClick={location}>Share location</button>
+    {clima && (
+      <div>
+        <div>
+          <h2>{clima.name}</h2>
+          <p>{clima && clima.weather ? clima.weather[0].description : 'Presiona el boton para mostrar informacion'}</p>
+        </div>
+        <div>
+        </div>
+      </div>
+    )}
     {/* Fin Cuadros  */}
       {/* {clima.map((item) => (
         <div key={item}>
@@ -86,17 +117,12 @@ function App() {
       ))
       } */}
       
-      {
-        cod()
-      }
-
-
 
     {/*  Cuadro  */}
     {/* Creando logica para cuando clickee el boton que muestre el cuadro o cuadros */}
+    {/*
     <button onClick={() => {setCuadro(det => det.length ? [] : [
       {y: -100, delay:100},
-      {y: -50, delay: 200}
     ]);
     }}>{cuadro.length ? 'Ocultar' : 'Mostrar'}</button>
     <div className='container2'>
@@ -105,7 +131,7 @@ function App() {
       ): '')}
     </div>
 
-
+  */}
 
         {/*  Animacion de cuadro */}
 
