@@ -1,0 +1,119 @@
+    import React, { useState, useEffect, useRef } from 'react';
+    import axios from 'axios';
+    import loadingPic from '../assets/30 (1).gif';
+    import '../Components/styleComponents/StyleCard.css';
+    import { useTransition, animated } from '@react-spring/web'
+
+    const Card = () => {
+    const [clima, setClima] = useState({});
+    const [tempUnit, setTempUnit] = useState('0°C');
+    const [clickedButton, setClickedButton] = useState(false);
+    const [Loading, setLoading] = useState(true);
+    const [weatherCap, setWeatherCap] = useState('');
+    const [textInput, setTextInput] = useState('');
+    const [finder, setFinder] = useState({});
+    const apikey = '56e1337974ab22108e31121b83bc55f2';
+
+    useEffect(() => {
+        location();
+    }, []);
+
+    
+    const location = async () => {
+        if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+            let nPositionLatitude = position.coords.latitude;
+            let nPositionLongitude = position.coords.longitude;
+            axios
+                .get(
+                `https://api.openweathermap.org/data/2.5/weather?lat=${nPositionLatitude}&lon=${nPositionLongitude}&appid=${apikey}`
+                )
+                .then((resp) => {
+                setClima(resp.data);
+                updateTemperature(resp.data.main.temp, resp.data.weather?.[0]?.description);
+                })
+                .catch((error) => {
+                alert(error.message);
+                })
+                .finally(() => {
+                setLoading(false);
+                });
+            },
+            () => {
+            alert('Error getting location');
+            setLoading(false);
+            }
+        );
+        } else {
+        alert('Not supported');
+        }
+    };
+
+    const faren = () => {
+        setClickedButton(!clickedButton);
+        const temperatureToConvert = finder.main?.temp || clima.main?.temp || 0;
+        const descriptionToUse = finder.weather?.[0]?.description || clima.weather?.[0]?.description || '';
+        updateTemperature(temperatureToConvert, descriptionToUse);
+    };
+
+    const updateTemperature = (temperature, description) => {
+        if (clickedButton) {
+        setTempUnit(`${Math.floor((temperature - 273.15) * (9 / 5) + 32)}°F`);
+        } else {
+        setTempUnit(`${Math.floor(temperature - 273.15)}°C`);
+        }
+
+        setWeatherCap(description ? description.charAt(0).toUpperCase() + description.slice(1) : '');
+    };
+
+    const city = useRef();
+
+    const handleForm = (event) => {
+        event.preventDefault();
+        setTextInput(city.current.value.toLowerCase().trim());
+    };
+
+    useEffect(() => {
+        if (textInput) {
+        axios
+            .get(`https://api.openweathermap.org/data/2.5/weather?q=${textInput}&appid=${apikey}`)
+            .then((resp) => {
+            setFinder(resp.data);
+            updateTemperature(resp.data.main.temp, resp.data.weather?.[0]?.description);
+            setLoading(false);
+            })
+            .catch((error) => {
+            console.log(error);
+            setLoading(false);
+            });
+        }
+    }, [textInput]);
+
+    return (
+        <div className="app">
+        {Loading ? (
+            <img src={loadingPic} alt="" />
+        ) : (
+            <div>
+            <h1>Weather App</h1>
+            <form className="weatherForm" onSubmit={handleForm}>
+                <input type="text" ref={city} />
+                <button type="submit">Search</button>
+            </form>
+            <div>
+                <h2>{finder?.name || clima?.name},{finder?.sys?.country || clima?.sys?.country}</h2>
+                <p>{weatherCap}</p>
+                <p>Wind Speed: {finder?.wind?.speed || clima?.wind?.speed}m/s</p>
+                <p>Clouds: {finder?.clouds?.all || clima?.clouds?.all}%</p>
+                <p>Pressure: {finder?.main?.pressure || clima?.main?.pressure}Pa</p>
+                <p>Temperature: {tempUnit}</p>
+                <button onClick={faren}>Change to: {`${clickedButton ? '°C' : '°F'}`}</button>
+            </div>
+            </div>
+        )}
+        </div>
+    );
+    };
+
+    export default Card;
