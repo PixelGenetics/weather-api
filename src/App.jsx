@@ -9,17 +9,19 @@ function App() {
   const [clickedButton, setClickedButton] = useState(false)
   const apikey = '56e1337974ab22108e31121b83bc55f2';
 
+  useEffect(() => {
+    location()
+  },[])
 
-const location = async () => {
+  const location = async () => {
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition((position) => {
       console.log("dentro de if")
       let nPositionLatitude = position.coords.latitude;
       let nPositionLongitude = position.coords.longitude;
       axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${nPositionLatitude}&lon=${nPositionLongitude}&appid=${apikey}`).then(resp => {
-        console.log("resp: ",resp.data.weather[0].description)
         setClima(resp.data);
-        setTempUnit(resp.data.main.temp);
+        setTempUnit(Math.floor(resp.data.main.temp - 273.15) + '°C');
       })
     }, (error) => {
       alert(error.message)
@@ -29,19 +31,13 @@ const location = async () => {
   }
 }
 
-const celsius = () => {
-  setClickedButton(!clickedButton);
-  setTempUnit(clickedButton ? clima.main.temp :  Math.floor(clima.main.temp - 273.15 )+ "°C");
-};
-
 const faren = () => {
   setClickedButton(!clickedButton);
-  setTempUnit(clickedButton ? clima.main.temp: Math.floor(clima.main.temp-273.15)* 9/5 + 32 + "°F")
+  setTempUnit(clickedButton ? Math.floor(clima.main.temp - 273.15)+ '°C': Math.floor(clima.main.temp-273.15)* 9/5 + 32 + "°F")
 }
 
   return (
     <div className='app'>
-    <button onClick={location}>Share location</button>
     {clima && Object.keys(clima).length > 0 &&(
       <div>
         <div>
@@ -52,16 +48,13 @@ const faren = () => {
           <p>Clouds {clima.clouds.all}%</p>
           <p>Pressure: {clima.main.pressure}Pa</p>
           <p>Temperature: {tempUnit}</p>
-          <button onClick={faren}>Change to °F</button>
-          <button onClick={celsius}>Change to °C</button>
+          <button onClick={faren}>Change to: {`${clickedButton ? '°C' : '°F'}`}</button>
         </div>
         <div>
         </div>
       </div>
     )}
-
     </div>
-
   )}
 
 export default App
