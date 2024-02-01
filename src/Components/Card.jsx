@@ -51,12 +51,16 @@
     };
 
     const faren = () => {
-        setClickedButton(!clickedButton);
+        setClickedButton((prevClickedButton) => !prevClickedButton);
+    };
+
+    useEffect(() => {
         const temperatureToConvert = finder.main?.temp || clima.main?.temp || 0;
         const descriptionToUse =
         finder.weather?.[0]?.description || clima.weather?.[0]?.description || '';
+
         updateTemperature(temperatureToConvert, descriptionToUse);
-    };
+    }, [clickedButton, finder, clima]);
 
     const updateTemperature = (temperature, description) => {
         if (clickedButton) {
@@ -79,8 +83,8 @@
 
     useEffect(() => {
         if (textInput) {
-        setLoading(true); // Se establece en true antes de hacer la nueva solicitud
-        setShowResults(false); // Se establece en false para ocultar los resultados mientras se carga la nueva información
+        setLoading(true);
+        setShowResults(false);
         axios
             .get(`https://api.openweathermap.org/data/2.5/weather?q=${textInput}&appid=${apikey}`)
             .then((resp) => {
@@ -126,7 +130,7 @@
                 </animated.div>
             )
         )}
-        {loading && <img src='https://i.gifer.com/ZKZg.gif' alt="" />}
+        {loading && <img src="https://i.gifer.com/ZKZg.gif" alt="" />}
         </div>
     );
     };
